@@ -20,16 +20,19 @@ int * fork_counter;
 #define CHECK_ERR_MMAP(a,msg) {if ((a) == MAP_FAILED) { perror((msg)); exit(EXIT_FAILURE); } }
 
 int main(void) {
+    
     // ESERCIZIO: rendere fork_counter una variabile condivisa tra tutti i processi
     // gestendo opportunamente la concorrenza
+    
     int res;
     pid_t pid;
+    
     process_semaphore = mmap(NULL, // NULL: è il kernel a scegliere l'indirizzo
-        sizeof(sem_t) + sizeof(int), // dimensione della memory map
-                PROT_READ | PROT_WRITE, // memory map leggibile e scrivibile
-                MAP_SHARED | MAP_ANONYMOUS, // memory map condivisibile con altri processi e senza file di appoggio
-                -1,
-                0); // offset nel file
+                    sizeof(sem_t) + sizeof(int), // dimensione della memory map
+                    PROT_READ | PROT_WRITE, // memory map leggibile e scrivibile
+                    MAP_SHARED | MAP_ANONYMOUS, // memory map condivisibile con altri processi e senza file di appoggio
+                    -1,
+                    0); // offset nel file
     CHECK_ERR_MMAP(process_semaphore,"mmap")
 
     fork_counter = (int *) (process_semaphore + 1);
@@ -40,27 +43,27 @@ int main(void) {
 
     pid = getpid();
 
-    for(int i=0; i<4; i++) {
-    fork();
-    wait(NULL);
+    for(int i = 0; i < 4; i++) {
+        fork();
+        wait(NULL);
     }
 
     if(sem_wait(process_semaphore) == -1) {
         perror("sem_wait");
-    exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
     }
 
     (*fork_counter)++;
 
     if(sem_post(process_semaphore) == -1) {
         perror("sem_post");
-    exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
     }
 
     printf("\npartial fork_counter result: %d\n", *fork_counter);
 
     if(pid == getpid()){
-    printf("\n\n***final fork_counter result: %d***\n\n", *fork_counter);
+        printf("\n\n***final fork_counter result: %d***\n\n", *fork_counter);
     }
     
     res = sem_destroy(process_semaphore);
