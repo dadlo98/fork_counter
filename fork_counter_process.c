@@ -62,6 +62,7 @@ int main(void) {
     if(pid == getpid()){
     printf("\n\n***final fork_counter result: %d***\n\n", *fork_counter);
     }
+    
     res = sem_destroy(process_semaphore);
     CHECK_ERR(res,"sem_destroy")
 
