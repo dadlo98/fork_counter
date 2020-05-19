@@ -44,8 +44,12 @@ int main(void) {
     pid = getpid();
 
     for(int i = 0; i < 4; i++) {
-        fork();
-        wait(NULL);
+        if(fork() == -1)
+            exit(EXIT_FAILURE);
+        if(wait(NULL) == -1) {
+            perror("wait");
+            exit(EXIT_FAILURE);
+        }
     }
 
     if(sem_wait(process_semaphore) == -1) {
